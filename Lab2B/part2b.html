@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <!--Justin Baja, 000356032-->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <!--Bootstrap library-->
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <title>Yelp</title>
+  <style>
+    .loader {
+      border: 16px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 16px solid #3498db;
+      width: 220px;
+      height: 220px;
+      animation: spin 2s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    #thumbnail {
+      width: 65px;
+      height: 74px;
+      float: left;
+    }
+    img {
+      height: 15px;
+    }
+    ul, li {
+      list-style-type: none;
+    }
+    .test {
+      float: left;
+    }
+    h5 {
+      margin-top: 0px;
+    }
+    .display {
+      font-size: 13px;
+    }
+    span {
+      font-size: 16px;
+    }
+  </style>
+  <!--Bing Maps API-->
+  <script 
+    type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?key=AhwmH3Ol3LsddiO1RTeGdfs5QXqSpZ5RnG4Bev7eNZkmokkPcJNpZtjU391fyK2S '>
+  </script>
+  <!--Ajax library-->
+  <script 
+    src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js">
+  </script>
+</head>
+<body>
+  <div class="container">
+    <div class="row">
+      <div class="col-xs-offset-2">
+        <br />
+        <h1><strong>Restaurants</strong></h1>
+        <h4 id="userMessage">Finding your location...</h4>
+        <br />
+        <div class="loader" id="loading"></div>
+      </div>
+      <div id="listOfRestaurants"></div>
+    </div>
+  </div>
+  <script>
+    // User's longitude
+    var longitude;
+    // User's Latitude
+    var latitude;
+    // Number of restaurants on the screen at a given time
+    var maximum = 20;
+
+    $(document).ready(function () 
+    {
+      // Requests the user's location
+      navigator.geolocation.getCurrentPosition(
+        function (position) {
+        userLocation = new Microsoft.Maps.Location(						position.coords.latitude,
+        position.coords.longitude);
+        longitude = userLocation.longitude;
+        latitude = userLocation.latitude;
+        $("#userMessage").html("Finding restaurants near you...");
+        requestRestaurants();
+        },
+        function (e) {
+          var userMessage = document.getElementById("userMessage");
+          switch (e.code) {
+            case e.PERMISSION_DENIED:
+              userMessage.innerHTML = "User denied the request for Geolocation."
+              break;
+            case e.POSITION_UNAVAILABLE:
+              userMessage.innerHTML = "Location information is unavailable."
+              break;
+            case e.TIMEOUT:
+              userMessage.innerHTML = "The request to get user location timed out."
+              break;
+            case e.UNKNOWN_ERROR:
+              userMessage.innerHTML = "An unknown error occurred."
+              break;
+          }
+        }
+      );
+      // Grabs 20 local restaurants nearest to you
+      function requestRestaurants(){
+        $.get("https://csunix.mohawkcollege.ca/tooltime/10133/2019/api/api.php",
+        { "lat": latitude, "long": longitude },
+          function(data){
+          restaurantData = JSON.parse(data);
+          $("#listOfRestaurants").append("<ul class='list-unstyled'>");
+          for(var i = 0; i < maximum; i++)
+          {
+            var row = "<li class='media'><img src='" + restaurantData.businesses[i].image_url + "' class='mr-3' alt='Food' id='thumbnail'><div class='media-body'><h5 class='mt-0 mb-1 display'><strong><span>" +  restaurantData.businesses[i].name + "</span></strong><br / >" + 
+            restaurantData.businesses[i].categories[0].title + "<br />" + restaurantData.businesses[i].location.address1 + ", " + restaurantData.businesses[i].location.city + ", " + restaurantData.businesses[i].location.state + " " + restaurantData.businesses[i].location.zip_code + ", " + restaurantData.businesses[i].location.country + "<br />" + restaurantData.businesses[i].phone + "<br />" + 
+            "<img src='" + restaurantRating(restaurantData.businesses[i].rating) + "' alt='rating'> " + restaurantData.businesses[i].review_count + " Reviews<br />";
+            $("#listOfRestaurants").append(row);
+          }
+          $("#listOfRestaurants").append("</ul>");
+          $("#userMessage").html("<strong>Found these restaurants</strong>");
+          $("#loading").removeClass("loader spin");
+        });
+      }
+      // Function that displays the restaurants rating
+      function restaurantRating(rating)
+      {
+        switch(rating)
+        {
+          case 1:
+            return "images/stars_small_1.png";
+            break;
+          case 1.5:
+            return "images/stars_small_1_half.png";
+            break;
+          case 2:
+            return "images/stars_small_2.png";
+            break;
+          case 2.5:
+            return "images/stars_small_2_half.png";
+            break;
+          case 3:
+            return "images/stars_small_3.png";
+            break;
+          case 3.5:
+            return "images/stars_small_3_half.png";
+            break;
+          case 4:
+            return "images/stars_small_4.png";
+            break;
+          case 4.5:
+            return "images/stars_small_4_half.png";
+            break;
+          case 5:
+            return "images/stars_small_5.png";
+            break;
+          default:
+            return "images/stars_small_0.png";
+        }
+      }
+    });
+  </script>
+</body>
+</html>
